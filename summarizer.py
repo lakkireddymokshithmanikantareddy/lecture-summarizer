@@ -91,8 +91,8 @@ def _parse_sections(raw: str) -> dict:
         line = line.strip()
         if ":" in line:
             term, _, defn = line.partition(":")
-            term = term.strip().lstrip("-* \t")
-            defn = defn.strip()
+            term = term.strip().strip("-* \t[]")
+            defn = defn.strip().strip("[]")
             if term and defn:
                 definitions[term] = defn
 
@@ -105,8 +105,8 @@ def _parse_sections(raw: str) -> dict:
     exam_questions = []
     for line in eq_raw.splitlines():
         line = line.strip()
-        # Strip leading numbering like "1." or "1)"
-        line = re.sub(r"^\d+[\.\)]\s*", "", line)
+        # Strip leading numbering like "1." or "1)" or bullets
+        line = re.sub(r"^(\d+[\.\)]|\-|\*)\s*", "", line)
         if line:
             exam_questions.append(line)
 
@@ -119,9 +119,16 @@ def _parse_sections(raw: str) -> dict:
     }
 
 
+_PREFERRED_MODELS = [
+    "gemini-3.5-flash-lite",
+    "gemini-flash-lite-latest",
+    "gemini-3.8-flash",
+]
+
+
 def summarize_text(text: str) -> dict:
     """
-    Call the Gemini API to summarize lecture notes.
+    Call the Gemini API to summarize lecture notes with automatic model fallback.
 
     Args:
         text: The raw lecture notes as a plain-text string.
@@ -132,11 +139,40 @@ def summarize_text(text: str) -> dict:
     client = _get_client()
     prompt = _PROMPT_TEMPLATE.format(text=text)
 
-    interaction = client.interactions.create(
-        model="gemini-3.8-flash",
-        input=prompt,
-        store=False,  # no need to persist this summarization turn
-    )
+    last_error = None
+    raw_response = ""
 
-    raw_response = interaction.output_text or ""
+    for model in _PREFERRED_MODELS:
+        # Prioritize generate_content for fast, direct inferencing
+        try:
+            resp = client.models.generate_content(
+                model=model,
+                contents=prompt,
+            )
+            raw_response = resp.text or ""
+            if raw_response.strip():
+                break
+        except Exception as exc:  # noqa: BLE001
+            last_error = exc
+
+        # Fallback to interactions API if needed
+        try:
+            interaction = client.interactions.create(
+                model=model,
+                input=prompt,
+                store=False,
+            )
+            raw_response = interaction.output_text or ""
+            if raw_response.strip():
+                break
+        except Exception as exc:  # noqa: BLE001
+            last_error = exc
+
+    if not raw_response.strip():
+        raise RuntimeError(
+            f"All candidate Gemini models failed to summarize. Last error: {last_error}"
+        )
+
     return _parse_sections(raw_response)
+
+
