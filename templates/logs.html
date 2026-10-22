@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📋 Session Logs — Lecture Summarizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">📚 Lecture Summarizer</h1>
+      <nav class="site-nav">
+        <a href="{{ url_for('index') }}" class="nav-link">← Back to Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    <h2 class="page-heading">📋 Session Logs</h2>
+
+    <div class="logs-summary card">
+      <strong>Total Sessions:</strong>
+      <span class="badge">{{ logs | length }}</span>
+    </div>
+
+    {% if logs %}
+      <div class="table-wrapper card">
+        <table class="logs-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Timestamp (UTC)</th>
+              <th>Session ID</th>
+              <th>Input Size</th>
+              <th>Processing Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in logs %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>
+                <time datetime="{{ entry.timestamp }}">
+                  {{ entry.timestamp | replace("T", " ") | replace("+00:00", " UTC") | truncate(22, killwords=True, end="…") }}
+                </time>
+              </td>
+              <td><code>{{ entry.session_id[:8] }}…</code></td>
+              <td>{{ "{:,}".format(entry.input_chars) }} chars</td>
+              <td>{{ entry.processing_seconds }}s</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="card empty-logs">
+        <p>No sessions logged yet. <a href="{{ url_for('index') }}">Summarize your first lecture!</a></p>
+      </div>
+    {% endif %}
+
+    <div class="action-row">
+      <a href="{{ url_for('index') }}" class="btn btn-primary">📚 Summarize a Lecture</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Powered by <strong>Gemini AI</strong> &nbsp;·&nbsp; Built for students, by students</p>
+    </div>
+  </footer>
+</body>
+</html>

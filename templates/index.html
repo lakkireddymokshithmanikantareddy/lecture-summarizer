@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📚 Lecture Summarizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">📚 Lecture Summarizer</h1>
+      <p class="site-subtitle">Paste your notes or upload a PDF — get an instant AI study guide</p>
+      <nav class="site-nav">
+        <a href="{{ url_for('logs') }}" class="nav-link">📋 View Session Logs</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-content">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+      <!-- Tab switcher -->
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" role="tab" aria-selected="true"
+                aria-controls="panel-text" id="tab-text"
+                onclick="switchTab('text')">
+          ✏️ Paste Notes
+        </button>
+        <button class="tab-btn" role="tab" aria-selected="false"
+                aria-controls="panel-pdf" id="tab-pdf"
+                onclick="switchTab('pdf')">
+          📄 Upload PDF
+        </button>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" action="{{ url_for('index') }}" novalidate>
+
+        <!-- Panel: Paste text -->
+        <div class="tab-panel" id="panel-text" role="tabpanel" aria-labelledby="tab-text">
+          <label for="notes_text" class="form-label">Paste your lecture notes below:</label>
+          <textarea
+            id="notes_text"
+            name="notes_text"
+            class="form-textarea"
+            placeholder="Paste lecture notes, slides text, or any academic content here…"
+            rows="14"
+          ></textarea>
+        </div>
+
+        <!-- Panel: Upload PDF -->
+        <div class="tab-panel hidden" id="panel-pdf" role="tabpanel" aria-labelledby="tab-pdf">
+          <label for="pdf_file" class="form-label">Select a PDF lecture file:</label>
+          <div class="file-drop-zone" id="drop-zone">
+            <div class="file-drop-icon">📂</div>
+            <p class="file-drop-text">Drag & drop a PDF here, or click to browse</p>
+            <input
+              type="file"
+              id="pdf_file"
+              name="pdf_file"
+              accept=".pdf,application/pdf"
+              class="file-input"
+            />
+          </div>
+          <p id="file-name-display" class="file-name-display"></p>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            ✨ Summarize with AI
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="tips-card card">
+      <h3>💡 Tips for best results</h3>
+      <ul>
+        <li>Include as much text as possible — more context = better summary</li>
+        <li>Works great with slides text, textbook chapters, and handwritten transcripts</li>
+        <li>PDF files with selectable text work best (scanned images may not extract well)</li>
+      </ul>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Powered by <strong>Gemini AI</strong> &nbsp;·&nbsp; Built for students, by students</p>
+    </div>
+  </footer>
+
+  <script>
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+
+      const activeBtn = document.getElementById('tab-' + name);
+      const activePanel = document.getElementById('panel-' + name);
+      activeBtn.classList.add('active');
+      activeBtn.setAttribute('aria-selected', 'true');
+      activePanel.classList.remove('hidden');
+    }
+
+    // File input display
+    const fileInput = document.getElementById('pdf_file');
+    const fileDisplay = document.getElementById('file-name-display');
+    if (fileInput) {
+      fileInput.addEventListener('change', () => {
+        const name = fileInput.files[0]?.name;
+        fileDisplay.textContent = name ? '📄 ' + name : '';
+      });
+    }
+
+    // Drag & drop on drop zone
+    const dropZone = document.getElementById('drop-zone');
+    if (dropZone) {
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+          // Switch to PDF tab
+          switchTab('pdf');
+          fileInput.files = e.dataTransfer.files;
+          fileDisplay.textContent = '📄 ' + e.dataTransfer.files[0].name;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

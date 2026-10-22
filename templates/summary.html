@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📚 Summary — Lecture Summarizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="site-title">📚 Lecture Summarizer</h1>
+      <nav class="site-nav">
+        <a href="{{ url_for('index') }}" class="nav-link">← Home</a>
+        <a href="{{ url_for('logs') }}" class="nav-link">📋 Logs</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-content">
+
+    <!-- Session metadata strip -->
+    <div class="meta-strip">
+      <span>🔑 Session <code>{{ session_id[:8] }}…</code></span>
+      <span>📝 {{ "{:,}".format(input_chars) }} chars processed</span>
+      <span>⏱ {{ processing_seconds }}s</span>
+    </div>
+
+    <h2 class="page-heading">Your AI Study Guide</h2>
+
+    <!-- Key Concepts -->
+    <section class="summary-card card" aria-label="Key Concepts">
+      <div class="card-header">
+        <span class="card-icon">🎯</span>
+        <h3>Key Concepts</h3>
+      </div>
+      <div class="card-body">
+        {% if result.key_concepts %}
+          <ul class="concept-list">
+            {% for concept in result.key_concepts %}
+              <li>{{ concept }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="empty-msg">No key concepts extracted.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Important Definitions -->
+    <section class="summary-card card" aria-label="Important Definitions">
+      <div class="card-header">
+        <span class="card-icon">📖</span>
+        <h3>Important Definitions</h3>
+      </div>
+      <div class="card-body">
+        {% if result.definitions %}
+          <dl class="definition-list">
+            {% for term, defn in result.definitions.items() %}
+              <dt>{{ term }}</dt>
+              <dd>{{ defn }}</dd>
+            {% endfor %}
+          </dl>
+        {% else %}
+          <p class="empty-msg">No definitions extracted.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Summary Paragraph -->
+    <section class="summary-card card" aria-label="Summary Paragraph">
+      <div class="card-header">
+        <span class="card-icon">📝</span>
+        <h3>Summary Paragraph</h3>
+      </div>
+      <div class="card-body">
+        {% if result.summary %}
+          <p class="summary-paragraph">{{ result.summary }}</p>
+        {% else %}
+          <p class="empty-msg">No summary generated.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Exam Questions -->
+    <section class="summary-card card" aria-label="Possible Exam Questions">
+      <div class="card-header">
+        <span class="card-icon">❓</span>
+        <h3>Possible Exam Questions</h3>
+      </div>
+      <div class="card-body">
+        {% if result.exam_questions %}
+          <ol class="exam-list">
+            {% for q in result.exam_questions %}
+              <li>{{ q }}</li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <p class="empty-msg">No exam questions generated.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Raw response toggle -->
+    <details class="card raw-card">
+      <summary>🔍 View raw Gemini response</summary>
+      <pre class="raw-text">{{ result.raw }}</pre>
+    </details>
+
+    <!-- Action buttons -->
+    <div class="action-row">
+      <a href="{{ url_for('index') }}" class="btn btn-primary">🔄 Summarize Another</a>
+      <a href="{{ url_for('logs') }}" class="btn btn-secondary">📋 View All Sessions</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Powered by <strong>Gemini AI</strong> &nbsp;·&nbsp; Built for students, by students</p>
+    </div>
+  </footer>
+</body>
+</html>
