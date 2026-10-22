@@ -21,7 +21,7 @@
 | Layer | Technology |
 |-------|-----------|
 | Backend | Python 3.11+, Flask 3.x |
-| AI | Google Gemini API (`gemini-3.8-flash`), `google-genai` SDK |
+| AI | Google Gemini API (Multi-model fallback: `gemini-3.5-flash-lite`, `gemini-flash-lite-latest`, `gemini-3.8-flash`), `google-genai` SDK |
 | PDF | PyPDF2 |
 | Config | python-dotenv |
 | Frontend | Jinja2 templates, vanilla JS, Google Fonts (Inter) |
@@ -34,7 +34,7 @@
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/lecture-summarizer.git
+git clone https://github.com/lakkireddymokshithmanikantareddy/lecture-summarizer.git
 cd lecture-summarizer
 ```
 
@@ -105,6 +105,8 @@ Open your browser at **http://127.0.0.1:5000**
 | v1.3 | Session logging | Tracks improvement over time |
 | v1.4 | Polished UI | Better user experience |
 | v1.5 | GitHub deployment | Portfolio-ready |
+| v1.6 | High-Availability Engine & Multi-Model Fallback | Resilient against LLM traffic spikes & cleaner definition formatting |
+
 
 ---
 
